@@ -1,6 +1,7 @@
 from flask import Flask
 import psutil
 import datetime
+import socket
 
 app = Flask(__name__)
 
@@ -36,13 +37,14 @@ def get_disk_info():
     }
     return disk_info
 
-def get_network_info():
-    net_io = psutil.net_if_addrs()
-    network_info = {
-        "ip": net_io['eth0'][0].address,  # Adjust 'eth0' as needed
-        "isp": "Your ISP Name"  # Replace with actual ISP lookup if needed
+def get_host_info():
+    host_ip = socket.gethostbyname(socket.gethostname())
+    # Placeholder for ISP; replace with actual lookup if needed
+    isp_name = "Your Hosting ISP"  
+    return {
+        "ip": host_ip,
+        "isp": isp_name
     }
-    return network_info
 
 @app.route('/')
 def index():
@@ -54,7 +56,6 @@ def stats():
     cpu_info = get_cpu_info()
     memory_info = get_memory_info()
     disk_info = get_disk_info()
-    network_info = get_network_info()
 
     return f"""
     <html>
@@ -109,10 +110,51 @@ def stats():
             <p>Free: {disk_info['free']:.2f} GB</p>
             <p>Percentage: {disk_info['percentage']}%</p>
         </div>
-        <div class="stat">
-            <h2>Network</h2>
-            <p>IP Address: {network_info['ip']}</p>
-            <p>ISP: {network_info['isp']}</p>
+    </body>
+    </html>
+    """
+
+@app.route('/ip')
+def ip_info():
+    host_info = get_host_info()
+
+    return f"""
+    <html>
+    <head>
+        <title>IP and ISP Information</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                padding: 20px;
+                background-color: #f4f4f4;
+            }}
+            h1 {{
+                text-align: center;
+                color: #333;
+            }}
+            .info {{
+                margin-bottom: 20px;
+            }}
+            .info h2 {{
+                margin-bottom: 10px;
+                color: #555;
+            }}
+            .info p {{
+                margin: 5px 0;
+                color: #777;
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>Hosting Information</h1>
+        <div class="info">
+            <h2>IP Address</h2>
+            <p>{host_info['ip']}</p>
+        </div>
+        <div class="info">
+            <h2>ISP</h2>
+            <p>{host_info['isp']}</p>
         </div>
     </body>
     </html>
