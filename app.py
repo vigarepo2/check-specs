@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, jsonify
 import psutil
 import datetime
-import socket
+import requests
 
 app = Flask(__name__)
 
@@ -38,13 +38,18 @@ def get_disk_info():
     return disk_info
 
 def get_host_info():
-    host_ip = socket.gethostbyname(socket.gethostname())
-    # Placeholder for ISP; replace with actual lookup if needed
-    isp_name = "Your Hosting ISP"  
-    return {
-        "ip": host_ip,
-        "isp": isp_name
-    }
+    response = requests.get("https://api.my-ip.io/v2/ip.json")
+    data = response.json()
+
+    if data.get("success"):
+        return {
+            "ip": data["ip"],
+            "isp": data["asn"]["name"],
+            "country": data["country"]["name"],
+            "latitude": data["location"]["lat"],
+            "longitude": data["location"]["lon"]
+        }
+    return {}
 
 @app.route('/')
 def index():
@@ -155,6 +160,18 @@ def ip_info():
         <div class="info">
             <h2>ISP</h2>
             <p>{host_info['isp']}</p>
+        </div>
+        <div class="info">
+            <h2>Country</h2>
+            <p>{host_info['country']}</p>
+        </div>
+        <div class="info">
+            <h2>Latitude</h2>
+            <p>{host_info['latitude']}</p>
+        </div>
+        <div class="info">
+            <h2>Longitude</h2>
+            <p>{host_info['longitude']}</p>
         </div>
     </body>
     </html>
